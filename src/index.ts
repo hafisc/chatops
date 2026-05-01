@@ -10,6 +10,7 @@
  * ╚══════════════════════════════════════════════════════╝
  */
 
+/** ChatOps — Multi-Platform Bot Orchestrator */
 import 'dotenv/config';
 import { log } from './utils/logger.js';
 import { connectDB, disconnectDB } from './config/database.js';
