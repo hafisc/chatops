@@ -72,7 +72,7 @@ Data Pembaruan:
     });
 
     const aiMessage = completion.choices[0]?.message?.content;
-    
+
     if (!aiMessage) {
       throw new Error('AI tidak mengembalikan pesan.');
     }
@@ -133,7 +133,7 @@ ${safeDocumentText}
     });
 
     const aiMessage = completion.choices[0]?.message?.content;
-    
+
     if (!aiMessage) {
       throw new Error('AI tidak mengembalikan pesan.');
     }
@@ -205,7 +205,7 @@ Status Proyek:
     });
 
     const aiMessage = completion.choices[0]?.message?.content;
-    
+
     if (!aiMessage) {
       throw new Error('AI tidak mengembalikan pesan.');
     }
