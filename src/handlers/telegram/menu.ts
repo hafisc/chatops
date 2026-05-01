@@ -91,3 +91,103 @@ Silakan pilih menu di bawah ini untuk mengelola operasi:
     await ctx.reply('Terjadi kesalahan sistem saat memuat menu. Silakan coba lagi nanti.');
   }
 }
+
+/**
+ * handleListProjects() — Handler tombol "Daftar Proyek"
+ */
+export async function handleListProjects(ctx: Context) {
+  try {
+    const projects = await prisma.project.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 5 // Batasi 5 terbaru agar pesan tidak terlalu panjang
+    });
+
+    let messageText = `<b>📊 DAFTAR PROYEK (5 Terbaru)</b>\n━━━━━━━━━━━━━━━━━━\n\n`;
+
+    if (projects.length === 0) {
+      messageText += `<i>Belum ada proyek yang terdaftar.</i>\n\nSilakan klik "Setup Proyek Baru" di menu utama.`;
+    } else {
+      projects.forEach((p, i) => {
+        const deadlineStr = p.deadline ? p.deadline.toLocaleDateString('id-ID') : 'Tidak ada';
+        messageText += `<b>${i + 1}. ${p.name}</b>\n`;
+        messageText += `   📦 Repo: <code>${p.githubRepo}</code>\n`;
+        messageText += `   ⏳ Deadline: ${deadlineStr}\n\n`;
+      });
+    }
+
+    const keyboard = Markup.inlineKeyboard([
+      [Markup.button.callback('🔙 Kembali ke Menu', 'action_back_to_menu')]
+    ]);
+
+    await ctx.editMessageText(messageText, { parse_mode: 'HTML', ...keyboard });
+  } catch (error) {
+    log.error('TELEGRAM', 'Gagal memuat daftar proyek', error);
+  }
+}
+
+/**
+ * handleManageTeam() — Handler tombol "Kelola Tim"
+ */
+export async function handleManageTeam(ctx: Context) {
+  const messageText = `
+<b>👥 KELOLA TIM</b>
+━━━━━━━━━━━━━━━━━━
+
+Modul ini akan segera hadir! Nantinya Anda dapat:
+- Menghubungkan kontak WA tim
+- Menugaskan anggota ke proyek
+- Melacak *performance* anggota
+
+<i>Stay tuned!</i> 🚀
+`;
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('🔙 Kembali', 'action_back_to_menu')]
+  ]);
+  await ctx.editMessageText(messageText, { parse_mode: 'HTML', ...keyboard });
+}
+
+/**
+ * handleAISettings() — Handler tombol "Pengaturan AI"
+ */
+export async function handleAISettings(ctx: Context) {
+  const isKeySet = !!process.env.GROQ_API_KEY;
+  const messageText = `
+<b>⚙️ PENGATURAN AI (GROQ)</b>
+━━━━━━━━━━━━━━━━━━
+
+🤖 <b>Engine:</b> Llama-3-8b-8192
+🔌 <b>API Status:</b> ${isKeySet ? '🟢 Terhubung' : '🔴 Tidak Ditemukan'}
+
+AI digunakan untuk:
+1. Merangkum GitHub Commits
+2. Mereview Proposal (SOW)
+3. Mengirim motivasi Daily Scrum
+`;
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('🔙 Kembali', 'action_back_to_menu')]
+  ]);
+  await ctx.editMessageText(messageText, { parse_mode: 'HTML', ...keyboard });
+}
+
+/**
+ * handleHelp() — Handler tombol "Bantuan"
+ */
+export async function handleHelp(ctx: Context) {
+  const messageText = `
+<b>❓ PUSAT BANTUAN</b>
+━━━━━━━━━━━━━━━━━━
+
+Berikut adalah daftar perintah yang tersedia:
+
+/start atau /menu - Membuka Dashboard Utama
+/reviewdocs <code>[repo]</code> - Menyuruh AI mereview dokumen proyek
+
+<b>Butuh Bantuan Ekstra?</b>
+Pastikan terminal di server berjalan tanpa error merah.
+`;
+  const keyboard = Markup.inlineKeyboard([
+    [Markup.button.callback('🔙 Kembali', 'action_back_to_menu')]
+  ]);
+  await ctx.editMessageText(messageText, { parse_mode: 'HTML', ...keyboard });
+}
+

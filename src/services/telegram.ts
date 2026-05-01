@@ -12,7 +12,13 @@
 import { Telegraf, session, Scenes } from 'telegraf';
 import { log } from '../utils/logger.js';
 import chalk from 'chalk';
-import { sendDashboardMenu } from '../handlers/telegram/menu.js';
+import { 
+  sendDashboardMenu, 
+  handleListProjects, 
+  handleManageTeam, 
+  handleAISettings, 
+  handleHelp 
+} from '../handlers/telegram/menu.js';
 import { setupWizard } from '../handlers/telegram/setupWizard.js';
 import { handleReviewDocs } from '../handlers/telegram/commands.js';
 
@@ -79,19 +85,30 @@ export async function initTelegram(): Promise<void> {
     await ctx.scene.enter('setupWizard');
   });
 
-  // Tombol lainnya yang belum diimplementasi
-  const actionList = [
-    'action_list_projects', 
-    'action_manage_team', 
-    'action_settings_ai', 
-    'action_help'
-  ];
-  
-  actionList.forEach(action => {
-    bot!.action(action, async (ctx) => {
-      // answerCbQuery memberi tahu Telegram bahwa klik sudah diproses
-      await ctx.answerCbQuery('Fitur ini sedang dirakit oleh Engineer! 🚀', { show_alert: false });
-    });
+  bot.action('action_list_projects', async (ctx) => {
+    await ctx.answerCbQuery();
+    await handleListProjects(ctx);
+  });
+
+  bot.action('action_manage_team', async (ctx) => {
+    await ctx.answerCbQuery();
+    await handleManageTeam(ctx);
+  });
+
+  bot.action('action_settings_ai', async (ctx) => {
+    await ctx.answerCbQuery();
+    await handleAISettings(ctx);
+  });
+
+  bot.action('action_help', async (ctx) => {
+    await ctx.answerCbQuery();
+    await handleHelp(ctx);
+  });
+
+  // Tombol kembali (navigasi balik ke dashboard)
+  bot.action('action_back_to_menu', async (ctx) => {
+    await ctx.answerCbQuery();
+    await sendDashboardMenu(ctx);
   });
 
   // Mulai mendengarkan pesan (Polling)

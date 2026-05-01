@@ -102,6 +102,26 @@ export function initWhatsApp(): Promise<void> {
       // Simpan credentials setiap update — krusial untuk session persistence
       sock.ev.on('creds.update', saveCreds);
 
+      // ═══ MESSAGE UPSERT HANDLER (Fitur /getid) ═══
+      sock.ev.on('messages.upsert', async (m) => {
+        if (m.type !== 'notify') return;
+        
+        const msg = m.messages[0];
+        if (!msg || !msg.message || msg.key.fromMe) return;
+
+        const text = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
+
+        if (text === '/getid') {
+          const remoteJid = msg.key.remoteJid;
+          if (remoteJid) {
+            log.info('WA', `Command /getid diterima dari ${chalk.cyan(remoteJid)}`);
+            await sock.sendMessage(remoteJid, {
+              text: `🤖 ID untuk chat ini adalah: ${remoteJid}`
+            });
+          }
+        }
+      });
+
     } catch (error) {
       log.error('WA', 'Gagal menginisialisasi WhatsApp.', error);
       reject(error);
