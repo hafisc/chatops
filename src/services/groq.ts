@@ -32,12 +32,14 @@ export async function formatCommitMessage(
 ): Promise<string> {
   const fallbackMessage = `🚀 *GITHUB UPDATE* 🚀
 ━━━━━━━━━━━━━━━━━━━━
-📁 *Repo:* \`${repoName}\`
-👤 *Oleh:* _${pusherName}_
+
+📁 *Repo:*  \`${repoName}\`
+👤 *Oleh:*  _${pusherName}_
 
 📝 *Ringkasan Perubahan:*
-${commitsArray.map(c => `> 🛠️ ${c}`).join('\n')}
+${commitsArray.map(c => `• ${c}`).join('\n')}
 
+━━━━━━━━━━━━━━━━━━━━
 _Terus semangat tim!_ 🔥`;
 
   // Jika tidak ada API key, kembalikan format standar saja
@@ -59,7 +61,7 @@ ${commitsArray.map(c => `- ${c}`).join('\n')}
       messages: [
         {
           role: 'system',
-          content: 'Kamu adalah Asisten Project Manager yang keren. Tugasmu adalah mengubah log commit teknis menjadi laporan WhatsApp yang SANGAT MENARIK, rapi, dan mudah dibaca oleh klien. Wajib gunakan formatting WhatsApp secara maksimal: Blockquote (>) untuk daftar perubahan, Bold (*) untuk judul, Monospace (\`\`\`) untuk nama file/kode, dan Italic (_) untuk catatan. Jangan lupa tambahkan emoji yang relevan dan garis pembatas karakter Unicode (seperti ━━━━━━━━━━━━━━━━━━━━). Pastikan formatnya mirip seperti notifikasi sistem yang futuristik. Jangan gunakan sapaan halo, langsung ke isinya.'
+          content: 'Kamu adalah Asisten Project Manager elit. Buat laporan WhatsApp yang SANGAT ESTETIK. Gunakan garis pembatas ━━━━━━━━━━━━━━━━━━━━ di awal dan akhir. Berikan jarak (newline) yang cukup antar bagian agar tidak terlihat sesak atau "terpotong". Gunakan bullet points (•) atau emoji yang rapi. WAJIB: Gunakan Bold (*) untuk judul, Monospace (```) untuk repo, dan Italic (_) untuk footer. Jangan gunakan sapaan, langsung ke isi laporannya.'
         },
         {
           role: 'user',
@@ -67,7 +69,7 @@ ${commitsArray.map(c => `- ${c}`).join('\n')}
         }
       ],
       // Llama-3-8b sangat cocok: Cepat dan reasoning-nya bagus untuk task sederhana
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       temperature: 0.6,
     });
 
@@ -129,7 +131,7 @@ ${safeDocumentText}
         }
       ],
       // Menggunakan Llama-3 karena kapabilitas penalaran logikanya unggul
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       temperature: 0.3, // Lebih rendah = lebih logis dan tidak berhalusinasi
     });
 
@@ -201,7 +203,7 @@ Status Proyek:
         }
       ],
       // Llama 3 8B cukup ringan dan cepat untuk task generasi teks natural
-      model: 'llama3-8b-8192',
+      model: 'llama-3.1-8b-instant',
       temperature: 0.7, // Sedikit lebih tinggi agar bahasanya lebih luwes dan bervariasi setiap hari
     });
 
