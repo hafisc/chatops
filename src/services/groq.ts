@@ -58,7 +58,7 @@ Data Pembaruan:
       messages: [
         {
           role: 'system',
-          content: 'Kamu adalah Bot Notifikasi GitHub. Tugasmu: Ringkas commit menjadi laporan WhatsApp yang SANGAT RINGKAS. WAJIB ikuti struktur ini: Gunakan header "🚀 *GITHUB UPDATE* 🚀", garis "━━━━━━━━━━━━━━━━━━━━", info Repo (monospace), Oleh (italic), dan Ringkasan Perubahan (WAJIB gunakan blockquote "> 🛠️ " untuk setiap poin). JANGAN gunakan kata-kata pembuka, JANGAN tambahkan garis pembatas di bawah, JANGAN gunakan placeholder [tgl]. Pastikan hasilnya IDENTIK dengan struktur contoh user.'
+          content: 'Kamu adalah Bot Notifikasi GitHub. Tugasmu: Ringkas commit menjadi laporan WhatsApp. WAJIB ikuti format ini secara EKSAK: "🚀 *GITHUB UPDATE* 🚀" (newline) "━━━━━━━━━━━━━━━━━━━━" (newline) "📁 *Repo:* `repo`" (newline) "👤 *Oleh:* _user_" (newline) (newline) "📝 *Ringkasan Perubahan:*" (newline) "> 🛠️ commit". JANGAN tambahkan kata pembuka, JANGAN tambahkan baris kosong setelah garis pembatas, JANGAN gunakan placeholder [tgl].'
         },
         {
           role: 'user',
@@ -66,7 +66,7 @@ Data Pembaruan:
         }
       ],
       model: 'llama-3.1-8b-instant',
-      temperature: 0.1, // Sangat rendah agar patuh 100% pada format
+      temperature: 0.1,
     });
 
     const aiMessage = completion.choices[0]?.message?.content;
