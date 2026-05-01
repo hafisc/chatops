@@ -1,4 +1,4 @@
-# 🚀 ChatOps Multi-Platform Bot Orchestrator
+# 🚀 ChatOps Multi-Platform Bot Orchestratord
 
 Bot asisten Project Manager cerdas yang dibangun dengan TypeScript, Telegraf, dan Baileys. Sistem ini mengombinasikan interface Telegram untuk setup project interaktif, dan interface WhatsApp untuk broadcast laporan otomatis (seperti GitHub webhook dan analisis dokumen SOW) menggunakan AI Groq (Llama-3), lengkap dengan UI/UX pesan dan terminal yang sangat memukau.
 
