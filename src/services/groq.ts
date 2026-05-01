@@ -32,14 +32,12 @@ export async function formatCommitMessage(
 ): Promise<string> {
   const fallbackMessage = `🚀 *GITHUB UPDATE* 🚀
 ━━━━━━━━━━━━━━━━━━━━
-
-📁 *Repo:*  \`${repoName}\`
-👤 *Oleh:*  _${pusherName}_
+📁 *Repo:* \`${repoName}\`
+👤 *Oleh:* _${pusherName}_
 
 📝 *Ringkasan Perubahan:*
-${commitsArray.map(c => `> • ${c}`).join('\n')}
+${commitsArray.map(c => `> 🛠️ ${c}`).join('\n')}
 
-━━━━━━━━━━━━━━━━━━━━
 _Terus semangat tim!_ 🔥`;
 
   // Jika tidak ada API key, kembalikan format standar saja
@@ -60,7 +58,7 @@ Data Pembaruan:
       messages: [
         {
           role: 'system',
-          content: 'Kamu adalah Bot Notifikasi GitHub. Tugasmu: Ringkas commit menjadi laporan WhatsApp yang SANGAT RINGKAS dan PADAT. WAJIB ikuti struktur ini: Gunakan header "🚀 *GITHUB UPDATE* 🚀", garis pembatas "━━━━━━━━━━━━━━━━━━━━", lalu info Repo (gunakan monospace), Oleh (gunakan italic), dan Ringkasan Perubahan (WAJIB gunakan blockquote ">" untuk setiap poin). JANGAN gunakan kata-kata pembuka seperti "Tentu", "Berikut adalah", atau "Pada tanggal". JANGAN gunakan placeholder [tgl]. Langsung berikan hasil akhirnya sesuai struktur tersebut.'
+          content: 'Kamu adalah Bot Notifikasi GitHub. Tugasmu: Ringkas commit menjadi laporan WhatsApp yang SANGAT RINGKAS. WAJIB ikuti struktur ini: Gunakan header "🚀 *GITHUB UPDATE* 🚀", garis "━━━━━━━━━━━━━━━━━━━━", info Repo (monospace), Oleh (italic), dan Ringkasan Perubahan (WAJIB gunakan blockquote "> 🛠️ " untuk setiap poin). JANGAN gunakan kata-kata pembuka, JANGAN tambahkan garis pembatas di bawah, JANGAN gunakan placeholder [tgl]. Pastikan hasilnya IDENTIK dengan struktur contoh user.'
         },
         {
           role: 'user',
@@ -68,7 +66,7 @@ Data Pembaruan:
         }
       ],
       model: 'llama-3.1-8b-instant',
-      temperature: 0.2, // Rendah agar konsisten dan tidak kreatif berlebihan
+      temperature: 0.1, // Sangat rendah agar patuh 100% pada format
     });
 
     const aiMessage = completion.choices[0]?.message?.content;
