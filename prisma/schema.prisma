@@ -28,6 +28,7 @@ model Project {
   figmaUrl    String?   // Opsional — link ke desain Figma
   docsUrl     String?   // Opsional — link ke dokumentasi
   deadline    DateTime? // Opsional — target deadline proyek
+  progressSummary String? // AI-generated summary of last known progress (from commits)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }

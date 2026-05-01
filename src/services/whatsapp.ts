@@ -20,6 +20,8 @@ import { log } from '../utils/logger.js';
 import chalk from 'chalk';
 import boxen from 'boxen';
 import pino from 'pino';
+import { prisma } from '../config/database.js';
+import { generateDailyReminder } from './groq.js';
 
 // Module-level state — satu koneksi WhatsApp aktif
 let waSocket: WASocket | null = null;
@@ -118,6 +120,57 @@ export function initWhatsApp(): Promise<void> {
             await sock.sendMessage(remoteJid, {
               text: `🤖 ID untuk chat ini adalah: ${remoteJid}`
             });
+          }
+        }
+
+        // ═══ TEST REMINDER COMMAND ═══
+        if (text === '/testreminder') {
+          const remoteJid = msg.key.remoteJid;
+          if (!remoteJid) return;
+
+          log.info('WA', `Command /testreminder diterima dari ${chalk.cyan(remoteJid)}`);
+          await sock.sendMessage(remoteJid, { text: '⏳ *ChatOps* sedang memproses reminder AI untuk seluruh proyek aktif...' });
+
+          try {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            const activeProjects = await prisma.project.findMany({
+              where: {
+                deadline: { gte: now },
+                waGroupId: { not: '' }
+              }
+            });
+
+            if (activeProjects.length === 0) {
+              await sock.sendMessage(remoteJid, { text: '❌ Tidak ada proyek aktif yang memiliki deadline di masa depan.' });
+              return;
+            }
+
+            for (const project of activeProjects) {
+              if (!project.deadline) continue;
+              
+              const diffTime = project.deadline.getTime() - now.getTime();
+              const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              const isFigmaMissing = !project.figmaUrl || project.figmaUrl.toLowerCase() === 'skip';
+              const isDocsMissing = !project.docsUrl || project.docsUrl.toLowerCase() === 'skip';
+
+              const reminderMsg = await generateDailyReminder(
+                project.name,
+                daysRemaining,
+                isFigmaMissing,
+                isDocsMissing,
+                project.progressSummary
+              );
+
+              await sock.sendMessage(project.waGroupId, { text: reminderMsg });
+              log.success('WA', `Reminder terkirim untuk proyek ${project.name}`);
+            }
+
+            await sock.sendMessage(remoteJid, { text: '✅ Semua reminder berhasil dikirim!' });
+          } catch (err) {
+            log.error('WA', 'Gagal memproses test reminder.', err);
+            await sock.sendMessage(remoteJid, { text: '❌ Gagal memproses reminder AI.' });
           }
         }
       });

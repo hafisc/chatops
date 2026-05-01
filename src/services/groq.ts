@@ -84,6 +84,39 @@ Data Pembaruan:
 }
 
 /**
+ * summarizeProjectProgress() — Membuat rangkuman singkat progress proyek
+ *
+ * Digunakan untuk mengupdate kolom progressSummary di DB agar bot punya "ingatan"
+ * tentang apa yang terakhir dikerjakan saat Daily Scrum.
+ */
+export async function summarizeProjectProgress(
+  commitsArray: string[]
+): Promise<string> {
+  if (!process.env.GROQ_API_KEY) return 'Pembaruan kode terakhir.';
+
+  try {
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: 'system',
+          content: 'Tugasmu adalah merangkum daftar commit menjadi 1 kalimat pendek (maksimal 15 kata) yang menjelaskan progress terakhir proyek. Gunakan bahasa Indonesia yang santai tapi jelas. Contoh: "Sedang mengerjakan integrasi webhook dan perbaikan UI WhatsApp."'
+        },
+        {
+          role: 'user',
+          content: `Daftar commit: ${commitsArray.join(', ')}`
+        }
+      ],
+      model: 'llama-3.1-8b-instant',
+      temperature: 0.3,
+    });
+
+    return completion.choices[0]?.message?.content?.trim() || 'Melakukan pembaruan fitur.';
+  } catch (error) {
+    return 'Melakukan pembaruan fitur.';
+  }
+}
+
+/**
  * analyzeDocument() — AI Project Manager Reviewer (SOW/Proposal)
  *
  * Menganalisis dokumen proyek dan mencari celah bisnis/teknis
@@ -154,13 +187,15 @@ ${safeDocumentText}
  * @param daysRemaining Sisa hari menuju deadline
  * @param isFigmaMissing Apakah figmaUrl kosong?
  * @param isDocsMissing Apakah docsUrl kosong?
+ * @param lastProgress Rangkuman progress terakhir (dari DB)
  * @returns String pesan pengingat
  */
 export async function generateDailyReminder(
   projectName: string,
   daysRemaining: number,
   isFigmaMissing: boolean,
-  isDocsMissing: boolean
+  isDocsMissing: boolean,
+  lastProgress: string | null
 ): Promise<string> {
   const fallbackMessage = `☀️ *DAILY SCRUM* ☀️
 ━━━━━━━━━━━━━━━━━━━━
@@ -168,7 +203,7 @@ export async function generateDailyReminder(
 ⏳ *Deadline:* _${daysRemaining} Hari Lagi_
 
 > Mari selesaikan tugas hari ini dengan maksimal! 🚀
-> Pastikan semua blocker sudah didiskusikan.
+${lastProgress ? `> *Progress Terakhir:* ${lastProgress}\n` : ''}> Pastikan semua blocker sudah didiskusikan.
 
 _Have a great day, team!_ 💪`;
 
@@ -181,6 +216,7 @@ _Have a great day, team!_ 💪`;
 Status Proyek:
 - Nama: ${projectName}
 - Sisa Waktu Deadline: ${daysRemaining} hari
+- Progress Terakhir: ${lastProgress || 'Belum ada aktivitas tercatat.'}
 - Status Desain (Figma): ${isFigmaMissing ? 'KOSONG / BELUM ADA' : 'Ada'}
 - Status Dokumen (SOW): ${isDocsMissing ? 'KOSONG / BELUM ADA' : 'Ada'}
 `;
@@ -190,16 +226,15 @@ Status Proyek:
       messages: [
         {
           role: 'system',
-          content: 'Kamu adalah Scrum Master yang asik di Tech Startup. Buatkan pesan Daily Scrum pagi untuk grup WhatsApp. WAJIB gunakan format premium: header ☀️ *DAILY SCRUM* ☀️ dan garis (━━━━━━━━━━━━━━━━━━━━). Gunakan Blockquote (>) untuk poin-poin penting / pengingat dokumen yang kurang. Gunakan Bold (*) untuk teks penting. Sapa tim dengan semangat ala anak startup. Singkat, padat, dan estetis. Jangan pakai kata pembuka basa-basi dari AI.'
+          content: 'Kamu adalah Scrum Master elit. Buat pesan Daily Scrum WhatsApp. Tugasmu adalah memberikan semangat DAN saran spesifik berdasarkan "Progress Terakhir" proyek tersebut. Jika progress terakhir adalah tentang "UI", sarankan langkah selanjutnya (misal: testing atau slicing). Jika Figma/Docs kosong, ingatkan dengan tegas tapi asik. WAJIB pakai format premium: header "☀️ *DAILY SCRUM* ☀️" dan garis (━━━━━━━━━━━━━━━━━━━━). Gunakan Blockquote (>) untuk poin-poin saran. Jangan bertele-tele.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      // Llama 3 8B cukup ringan dan cepat untuk task generasi teks natural
       model: 'llama-3.1-8b-instant',
-      temperature: 0.7, // Sedikit lebih tinggi agar bahasanya lebih luwes dan bervariasi setiap hari
+      temperature: 0.7,
     });
 
     const aiMessage = completion.choices[0]?.message?.content;

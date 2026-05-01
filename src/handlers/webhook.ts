@@ -14,7 +14,7 @@
 
 import { Router, Request, Response } from 'express';
 import { prisma } from '../config/database.js';
-import { formatCommitMessage } from '../services/groq.js';
+import { formatCommitMessage, summarizeProjectProgress } from '../services/groq.js';
 import { getWhatsAppSocket } from '../services/whatsapp.js';
 import { log } from '../utils/logger.js';
 import chalk from 'chalk';
@@ -75,8 +75,15 @@ async function processWebhookPayload(payload: any) {
 
     // 4. Proses via AI (Groq)
     const formattedMessage = await formatCommitMessage(pusherName, repoName, commitMessages);
+    const progressSummary = await summarizeProjectProgress(commitMessages);
 
-    // 5. Kirim via WhatsApp (Baileys)
+    // 5. Update Database dengan Progress Terakhir
+    await prisma.project.update({
+      where: { id: project.id },
+      data: { progressSummary }
+    });
+
+    // 6. Kirim via WhatsApp (Baileys)
     const waSocket = getWhatsAppSocket();
     if (!waSocket) {
       throw new Error('Koneksi WhatsApp belum siap!');
@@ -87,6 +94,7 @@ async function processWebhookPayload(payload: any) {
     });
 
     log.success('WA', `Laporan berhasil dikirim ke grup untuk proyek ${chalk.green(project.name)}`);
+    log.info('DB', `Progress proyek ${project.name} diperbarui: ${progressSummary}`);
 
   } catch (error) {
     log.error('WEBHOOK', `Gagal memproses Webhook untuk ${repoName}`, error);

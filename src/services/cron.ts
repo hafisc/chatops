@@ -71,7 +71,8 @@ export function initCronJobs() {
           project.name,
           daysRemaining,
           isFigmaMissing,
-          isDocsMissing
+          isDocsMissing,
+          project.progressSummary
         );
 
         // 4. Kirim ke Grup WA terkait
