@@ -30,10 +30,20 @@ export async function formatCommitMessage(
   repoName: string,
   commitsArray: string[]
 ): Promise<string> {
+  const fallbackMessage = `🚀 *GITHUB UPDATE* 🚀
+━━━━━━━━━━━━━━━━━━━━
+📁 *Repo:* \`${repoName}\`
+👤 *Oleh:* _${pusherName}_
+
+📝 *Ringkasan Perubahan:*
+${commitsArray.map(c => `> 🛠️ ${c}`).join('\n')}
+
+_Terus semangat tim!_ 🔥`;
+
   // Jika tidak ada API key, kembalikan format standar saja
   if (!process.env.GROQ_API_KEY) {
     log.warn('AI', 'GROQ_API_KEY tidak diset. Menggunakan format standar.');
-    return `📦 *Pembaruan: ${repoName}*\n\nOleh: ${pusherName}\n\nPerubahan:\n${commitsArray.map(c => `- ${c}`).join('\n')}`;
+    return fallbackMessage;
   }
 
   const prompt = `
@@ -49,7 +59,7 @@ ${commitsArray.map(c => `- ${c}`).join('\n')}
       messages: [
         {
           role: 'system',
-          content: 'Kamu adalah AI Project Manager yang cerdas. Rapikan pesan commit GitHub ini menjadi laporan pembaruan proyek yang sangat profesional, ramah, dan mudah dipahami oleh klien (non-teknis). Gunakan listicle, bold, italic, dan emoji yang relevan. Jangan ubah makna teknisnya, tapi buat bahasa penyampaiannya keren. Jangan sapa dan langsung berikan isinya.'
+          content: 'Kamu adalah Asisten Project Manager yang keren. Tugasmu adalah mengubah log commit teknis menjadi laporan WhatsApp yang SANGAT MENARIK, rapi, dan mudah dibaca oleh klien. Wajib gunakan formatting WhatsApp secara maksimal: Blockquote (>) untuk daftar perubahan, Bold (*) untuk judul, Monospace (\`\`\`) untuk nama file/kode, dan Italic (_) untuk catatan. Jangan lupa tambahkan emoji yang relevan dan garis pembatas karakter Unicode (seperti ━━━━━━━━━━━━━━━━━━━━). Pastikan formatnya mirip seperti notifikasi sistem yang futuristik. Jangan gunakan sapaan halo, langsung ke isinya.'
         },
         {
           role: 'user',
@@ -58,7 +68,7 @@ ${commitsArray.map(c => `- ${c}`).join('\n')}
       ],
       // Llama-3-8b sangat cocok: Cepat dan reasoning-nya bagus untuk task sederhana
       model: 'llama3-8b-8192',
-      temperature: 0.5,
+      temperature: 0.6,
     });
 
     const aiMessage = completion.choices[0]?.message?.content;
@@ -72,7 +82,7 @@ ${commitsArray.map(c => `- ${c}`).join('\n')}
   } catch (error) {
     log.error('AI', 'Gagal memformat pesan commit.', error);
     // Fallback: Kirim format standar jika AI error/rate limit
-    return `📦 *Pembaruan: ${repoName}*\n\nOleh: ${pusherName}\n\nPerubahan:\n${commitsArray.map(c => `- ${c}`).join('\n')}`;
+    return fallbackMessage;
   }
 }
 
@@ -111,7 +121,7 @@ ${safeDocumentText}
       messages: [
         {
           role: 'system',
-          content: 'Kamu adalah Senior Project Manager dan Analis Sistem yang sangat teliti. Analisis dokumen Proposal/SOW berikut. Carilah celah, ambiguitas, atau hal yang kurang spesifik (misal: fitur yang tidak dijelaskan detailnya, alur yang bolong). Berikan tepat 3 poin evaluasi kritis yang membangun. Gunakan bahasa Indonesia yang profesional, tegas, tapi asik (ala startup). Gunakan formatting WhatsApp (tebal, miring, emoji). Sapa tim dan sebutkan nama proyeknya di awal.'
+          content: 'Kamu adalah Senior Project Manager dan Analis Sistem elit. Analisis dokumen Proposal/SOW berikut. Carilah celah, ambiguitas, atau hal yang kurang spesifik. Berikan 3 poin evaluasi kritis. WAJIB gunakan format WhatsApp premium: gunakan header 📑 *SOW ANALYSIS* 📑 dan garis pembatas Unicode (━━━━━━━━━━━━━━━━━━━━). Gunakan Blockquote (>) untuk daftar evaluasi. Gunakan Monospace (\`\`\`) untuk istilah teknis. Buat sekeren dan serapi mungkin agar mudah dibaca di layar HP.'
         },
         {
           role: 'user',
@@ -155,9 +165,19 @@ export async function generateDailyReminder(
   isFigmaMissing: boolean,
   isDocsMissing: boolean
 ): Promise<string> {
+  const fallbackMessage = `☀️ *DAILY SCRUM* ☀️
+━━━━━━━━━━━━━━━━━━━━
+🎯 *Proyek:* \`${projectName}\`
+⏳ *Deadline:* _${daysRemaining} Hari Lagi_
+
+> Mari selesaikan tugas hari ini dengan maksimal! 🚀
+> Pastikan semua blocker sudah didiskusikan.
+
+_Have a great day, team!_ 💪`;
+
   if (!process.env.GROQ_API_KEY) {
     // Fallback jika API Key kosong
-    return `☀️ *Daily Scrum: ${projectName}*\n\nSelamat pagi tim! Deadline tinggal *${daysRemaining} hari* lagi. Mari selesaikan tugas hari ini dengan maksimal! 🚀`;
+    return fallbackMessage;
   }
 
   const prompt = `
@@ -173,7 +193,7 @@ Status Proyek:
       messages: [
         {
           role: 'system',
-          content: 'Kamu adalah Scrum Master yang asik dan memotivasi di sebuah Tech Startup. Buatkan pesan pengingat pagi (Daily Scrum) untuk tim di WhatsApp. Sapa tim dengan semangat. Beritahu mereka sisa harinya. Jika Figma atau Dokumen masih kosong (berdasarkan data yang diberikan), ingatkan secara santai tapi tegas untuk segera dilengkap. Gunakan emoji penyemangat dan bahasa gaul startup (contoh: "Yuk gas!", "Semangat tim!", "Jangan lupa sync", dll). Jangan buat terlalu panjang (maksimal 4 paragraf pendek). Langsung berikan isinya tanpa sapaan pembuka "Tentu, ini dia pesanannya...".'
+          content: 'Kamu adalah Scrum Master yang asik di Tech Startup. Buatkan pesan Daily Scrum pagi untuk grup WhatsApp. WAJIB gunakan format premium: header ☀️ *DAILY SCRUM* ☀️ dan garis (━━━━━━━━━━━━━━━━━━━━). Gunakan Blockquote (>) untuk poin-poin penting / pengingat dokumen yang kurang. Gunakan Bold (*) untuk teks penting. Sapa tim dengan semangat ala anak startup. Singkat, padat, dan estetis. Jangan pakai kata pembuka basa-basi dari AI.'
         },
         {
           role: 'user',
@@ -195,6 +215,6 @@ Status Proyek:
 
   } catch (error) {
     log.error('AI', 'Gagal membuat pesan daily reminder.', error);
-    return `☀️ *Daily Scrum: ${projectName}*\n\nSelamat pagi tim! Deadline tinggal *${daysRemaining} hari* lagi. Mari selesaikan tugas hari ini dengan maksimal! 🚀`;
+    return fallbackMessage;
   }
 }
