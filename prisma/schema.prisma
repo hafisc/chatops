@@ -1,0 +1,57 @@
+// ═══════════════════════════════════════════════════════
+// PRISMA SCHEMA — ChatOps Database Blueprint
+// ═══════════════════════════════════════════════════════
+// Seluruh model data aplikasi didefinisikan di sini.
+// Jalankan `npx prisma db push` setelah mengubah schema.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// ─────────────────────────────────────────────────────
+/// Model Project — Jantung dari ChatOps
+/// Menyimpan relasi antara GitHub repo, WhatsApp group,
+/// dan aset-aset proyek (Figma, Docs, dll).
+/// Setiap project adalah "satu unit kerja" yang bisa
+/// dipantau dan dikelola via bot.
+/// ─────────────────────────────────────────────────────
+model Project {
+  id          String    @id @default(uuid())
+  name        String    // Nama proyek yang mudah diingat
+  githubRepo  String    @unique // Format: "owner/repo-name"
+  waGroupId   String    // Format: "120363xxxxx@g.us"
+  figmaUrl    String?   // Opsional — link ke desain Figma
+  docsUrl     String?   // Opsional — link ke dokumentasi
+  deadline    DateTime? // Opsional — target deadline proyek
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+/// ─────────────────────────────────────────────────────
+/// Model Group — Menyimpan data grup platform
+/// ─────────────────────────────────────────────────────
+model Group {
+  id        String   @id @default(cuid())
+  platform  String   // "telegram" | "whatsapp"
+  chatId    String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// ─────────────────────────────────────────────────────
+/// Model BotSession — Tracking uptime & status koneksi
+/// ─────────────────────────────────────────────────────
+model BotSession {
+  id        String   @id @default(cuid())
+  platform  String
+  status    String   @default("offline")
+  startedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
