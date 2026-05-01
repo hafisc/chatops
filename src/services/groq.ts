@@ -37,7 +37,7 @@ export async function formatCommitMessage(
 👤 *Oleh:*  _${pusherName}_
 
 📝 *Ringkasan Perubahan:*
-${commitsArray.map(c => `• ${c}`).join('\n')}
+${commitsArray.map(c => `> • ${c}`).join('\n')}
 
 ━━━━━━━━━━━━━━━━━━━━
 _Terus semangat tim!_ 🔥`;
@@ -49,11 +49,10 @@ _Terus semangat tim!_ 🔥`;
   }
 
   const prompt = `
-Berikut adalah data pembaruan proyek (push ke repository GitHub):
-- Repositori: ${repoName}
-- Oleh: ${pusherName}
-- Daftar Commit:
-${commitsArray.map(c => `- ${c}`).join('\n')}
+Data Pembaruan:
+- Repo: ${repoName}
+- User: ${pusherName}
+- Commits: ${commitsArray.join(', ')}
 `;
 
   try {
@@ -61,16 +60,15 @@ ${commitsArray.map(c => `- ${c}`).join('\n')}
       messages: [
         {
           role: 'system',
-          content: 'Kamu adalah Asisten Project Manager elit. Buat laporan WhatsApp yang SANGAT ESTETIK. Gunakan garis pembatas ━━━━━━━━━━━━━━━━━━━━ di awal dan akhir. Berikan jarak (newline) yang cukup antar bagian agar tidak terlihat sesak atau "terpotong". Gunakan bullet points (•) atau emoji yang rapi. WAJIB: Gunakan Bold (*) untuk judul, Monospace (```) untuk repo, dan Italic (_) untuk footer. Jangan gunakan sapaan, langsung ke isi laporannya.'
+          content: 'Kamu adalah Bot Notifikasi GitHub. Tugasmu: Ringkas commit menjadi laporan WhatsApp yang SANGAT RINGKAS dan PADAT. WAJIB ikuti struktur ini: Gunakan header "🚀 *GITHUB UPDATE* 🚀", garis pembatas "━━━━━━━━━━━━━━━━━━━━", lalu info Repo (gunakan monospace), Oleh (gunakan italic), dan Ringkasan Perubahan (WAJIB gunakan blockquote ">" untuk setiap poin). JANGAN gunakan kata-kata pembuka seperti "Tentu", "Berikut adalah", atau "Pada tanggal". JANGAN gunakan placeholder [tgl]. Langsung berikan hasil akhirnya sesuai struktur tersebut.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      // Llama-3-8b sangat cocok: Cepat dan reasoning-nya bagus untuk task sederhana
       model: 'llama-3.1-8b-instant',
-      temperature: 0.6,
+      temperature: 0.2, // Rendah agar konsisten dan tidak kreatif berlebihan
     });
 
     const aiMessage = completion.choices[0]?.message?.content;
@@ -83,7 +81,6 @@ ${commitsArray.map(c => `- ${c}`).join('\n')}
 
   } catch (error) {
     log.error('AI', 'Gagal memformat pesan commit.', error);
-    // Fallback: Kirim format standar jika AI error/rate limit
     return fallbackMessage;
   }
 }
